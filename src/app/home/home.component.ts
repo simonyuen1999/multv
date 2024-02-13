@@ -6,7 +6,7 @@ import { Component, OnInit } from '@angular/core';
   imports: [],
   template: `
     <p>
-      home works!
+      home component works!
     </p>
   `,
   styles: ``

@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
   imports: [],
   template: `
     <p>
-      tch works!
+      Lazy load module - TCH component works!
     </p>
   `,
   styles: ``

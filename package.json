@@ -5,9 +5,11 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "buildh": "ng build --output-hashing=bundles",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:multv": "node dist/multv/server/server.mjs"
+    "serve:ssr:multv": "node dist/multv/server/server.mjs",
+    "http-svr": "npx  http-server dist/multv/browser"
   },
   "private": true,
   "dependencies": {

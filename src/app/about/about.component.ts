@@ -6,7 +6,7 @@ import { Component, OnInit } from '@angular/core';
   imports: [],
   template: `
     <p>
-      about works!
+      about component works!
     </p>
   `,
   styles: ``

@@ -13,5 +13,5 @@ import { RouterOutlet } from '@angular/router';
   styles: [],
 })
 export class AppComponent {
-  title = 'MultV NG v17.1.3';
+  title = 'MultV NG v17.1.3 - App title';
 }
