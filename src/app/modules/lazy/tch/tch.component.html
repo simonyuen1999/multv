@@ -1,0 +1,20 @@
+<div class="page-container">
+    <div class="action-bar">
+        <h3 class="action-bar-text">{{ title }}</h3>
+    </div>
+    <button class="refresh-button" (click)="onClick()">refresh</button>
+    <hr>
+    <div class="top-container">
+        <table class='gridtable'>
+            <tbody>
+                <tr><th>TIME</th><th>TYPE</th><th>STATUS</th><th>MSG ID</th></tr>
+                <tr *ngFor="let row of data">
+                    <td nowrap>{{row.TIME}}</td>
+                    <td>{{row.TYPE}}</td>
+                    <td>{{row.STATUS}}</td>
+                    <td>{{row.MSG_ID}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
