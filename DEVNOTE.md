@@ -113,3 +113,154 @@ Webpack implements code splitting in two main ways:
 Under the hood, webpack analyzes the application code to determine split points and optimize the chunks. The output is multiple smaller bundles rather than one large file.
 
 So in summary, "webpack's code splitting" refers to webpack's built-in functionality to split your code into multiple optimized bundles that can be loaded dynamically for performance and caching benefits. This is crucial for implementing techniques like lazy loading.
+
+## Split the code into multiple bundles
+
+> How to split the **@src\app\modules\lazy\lazy.module.ts** and **@src\app\modules\lazy\tch\tch.component.ts** into different build and different bundle? And, how to deploy this separated bundle into the production directory?
+
+Here is one way to split LazyModule and TchComponent into separate builds and bundles with deployment:
+
+In **webpack.config.js**,
+- Define two entry points:
+```js
+entry: {
+  main: './src/main.ts',
+  lazy: './src/app/modules/lazy/lazy.module.ts'
+}
+```
+- Configure output for separate bundle names:
+```js
+output: {
+  filename: '[name].bundle.js'
+}
+```
+- Add entryOnly setting:
+```js
+optimization: {
+  runtimeChunk: 'single',
+  splitChunks: {
+    chunks: 'all',
+    maxInitialRequests: Infinity,
+    minSize: 0,
+    cacheGroups: {
+      vendor: {
+        test: /[\\/]node_modules[\\/]/,
+        name(module) {
+          // put external deps in vendor bundle
+          if (module.context.indexOf('node_modules') !== -1) {
+            return 'vendor';
+          }
+        }
+      }
+    }
+  }
+}
+```
+1. Build will now generate main.bundle.js and lazy.bundle.js
+
+2. For deployment, copy bundles into respective folders:
+```text
+dist/
+  - main/
+    - main.bundle.js
+  - lazy/
+    - lazy.bundle.js
+```
+Now the main and lazy bundles are separated in both build and deployment.
+
+## Explain this webpack.config.js file
+
+```js
+const path = require('path');
+
+module.exports = {
+  entry: {
+    main: './src/main.ts',
+    lazy: './src/app/modules/lazy/lazy.module.ts'
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].bundle.js',
+    chunkFilename: '[name].chunk.js', 
+    chunkLoadingGlobal: 'webpackJsonp' // Important for lazy loading
+  },
+
+  optimization: {
+    runtimeChunk: 'single',
+    splitChunks: {
+      chunks: 'all',
+      maxInitialRequests: Infinity,
+      minSize: 0,
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name(module) {
+            // put external deps in vendor bundle
+            if (module.context.indexOf('node_modules') !== -1) {
+              return 'vendor';
+            }
+          }
+        }
+      }
+    }
+  },
+};
+```
+This **webpack.config.js** file is a configuration file for Webpack, a **static module bundler** for modern JavaScript applications. When webpack processes your application, it internally builds a dependency graph which maps every module your project needs and generates one or more bundles.
+
+Let's break down the key parts of this configuration:
+
+1. **entry**: This is the entry point for webpack. The property names (main and lazy) are the names of the bundles that webpack will output. The property values are the relative paths to the TypeScript files that serve as the entry points for those bundles.
+
+2. **output**: This is where the bundled files will be output. The **path** property is the directory where the output files will be placed. The **filename** property is the name of the output bundle. The **chunkFilename** property is the name of non-entry chunk files. The **chunkLoadingGlobal** property is the global variable used by webpack for loading chunks, which is important for lazy loading.
+
+3. **optimization**: This section is used to specify different optimization steps that webpack will take when creating the final bundles. The **runtimeChunk** property is set to '**single**' to create a single runtime bundle for all chunks. The **splitChunks** property is used to define various conditions for how webpack should split your code into chunks. The **cacheGroups** property is used to override the default optimization configuration. In this case, it's used to put all code from node_modules into a separate 'vendor' bundle.
+
+The **vendor** cache group uses a **test** function to determine which modules should be included in the vendor bundle. If the module's context contains '**node_modules**', it's included in the vendor bundle.
+
+This configuration is a common pattern for Angular applications, where you want to separate your application code (in the '**main**' bundle) from your vendor code (in the '**vendor**' bundle), and also support lazy loading of certain modules (like the '**lazy**' module in this case).
+
+## What is the build command to generate main.bundle.js and lazy.bundle.js files?
+Add webpack to system
+> npm install -g webpack
+
+> npm install -g webpack-cli
+
+Add webpack-cli into the project
+> yarn add -D webpack-cli
+
+1. **Single Build Command**
+
+With the webpack config split into entries for main and lazy, you can generate both bundles with a single build command:
+```console
+webpack --config webpack.config.js
+```
+This will compile and output both bundle files in one go.
+
+2. **Separate Builds**
+
+To compile them separately, you can target each entry point individually:
+```console
+// Build only main
+webpack --config webpack.config.js --entry main
+
+// Build only lazy 
+webpack --config webpack.config.js --entry lazy
+```
+This will compile each entry into its own bundle output.
+
+The key flags are:
+
++ **--config** - Points to the webpack config file
++ **--entry** - Specifies which entry point to build
+
+So with either a single build, or separate targeted builds, you can generate the main and lazy bundles separately.
+
+## 2024-Feb-13 Stop
+
+The following commands return compilation error.  Take a BREAK.
+```
+webpack --config webpack.config.js
+webpack --config webpack.config.js --entry main
+webpack --config webpack.config.js --entry lazy
+```
