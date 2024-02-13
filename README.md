@@ -1,6 +1,6 @@
 # Multv
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.1.0.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.1.3.
 
 ## Development server
 
@@ -13,6 +13,12 @@ Run `ng generate component component-name` to generate a new component. You can 
 ## Build
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+
+Another build command `ng build --output-hashing=bundles` is used to build the project with hashed file names.
+
+## Running on http-serve
+
+Run `npx http-server dist\multv\browser` to run the project on http-server.  Access http://127.0.0.1:8081 to test the program. 
 
 ## Running unit tests
 
