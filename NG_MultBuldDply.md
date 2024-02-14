@@ -145,3 +145,226 @@ If you want to modify the HelloComponent and redeploy it, you can do the followi
 3. Test your application by opening the web server’s base URL in the browser. You should see the updated HelloComponent when you load it in the AppComponent.
 
 You do not need to touch the existing AppComponent when you redeploy the HelloComponent, as long as the selector and the inputs/outputs of the HelloComponent remain the same. The AppComponent will dynamically load the latest version of the HelloComponent from the sub-URL.
+
+## ComponentFactoryResolver is deprecated after Angular 13
+
+Before Angular 13, the **ComponentFactoryResolver** class was used to create a component factory from a component URL. This class is now deprecated and will be removed in Angular 14.    Here is the example to move to new **createComponent** API.
+
+```js
+// app.component.ts
+// Use componentFactoryResolver to create component factory
+import {
+  Component,
+  ComponentFactoryResolver,
+  Injector,
+  ApplicationRef,
+  ElementRef,
+} from '@angular/core';
+import { ProfileAComponent } from './profile-a/profile-a.component';
+import { ProfileBComponent } from './profile-b/profile-b.component';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+})
+export class AppComponent {
+  constructor(
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private injector: Injector,
+    private appRef: ApplicationRef,
+    private el: ElementRef
+  ) {}
+
+  loadProfileA() {
+    this.loadComponent(ProfileAComponent);
+  }
+
+  loadProfileB() {
+    this.loadComponent(ProfileBComponent);
+  }
+
+  private loadComponent(component: any) {
+    const factory =
+      this.componentFactoryResolver.resolveComponentFactory(component);
+    const componentRef = factory.create(this.injector);
+    this.appRef.attachView(componentRef.hostView);
+    this.el.nativeElement.appendChild(componentRef.location.nativeElement);
+
+    componentRef.onDestroy(() => {
+      this.appRef.detachView(componentRef.hostView);
+    });
+  }
+}
+```
+Change to the new API:
+```js
+// app.component.ts
+// Use createComponent to create component factory
+import {
+  Component,
+//ComponentFactoryResolver,    
+//Injector,
+  ApplicationRef,
+  ElementRef,
+  ViewContainerRef,            // <-- New
+} from '@angular/core';
+import { ProfileAComponent } from './profile-a/profile-a.component';
+import { ProfileBComponent } from './profile-b/profile-b.component';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+})
+export class AppComponent {
+  constructor(
+//  private componentFactoryResolver: ComponentFactoryResolver,
+//  private injector: Injector,
+    private appRef: ApplicationRef,
+    private el: ElementRef,
+    private viewContainerRef: ViewContainerRef     // <-- New
+  ) {}
+
+  loadProfileA() {
+    this.loadComponent(ProfileAComponent);
+  }
+
+  loadProfileB() {
+    this.loadComponent(ProfileBComponent);
+  }
+
+  private loadComponent(component: any) {
+
+    // Remove this
+    // const factory =
+    //   this.componentFactoryResolver.resolveComponentFactory(component);
+    // const componentRef = factory.create(this.injector);
+
+    // New API call
+    const componentRef = this.viewContainerRef.createComponent(component);
+
+    this.appRef.attachView(componentRef.hostView);
+    this.el.nativeElement.appendChild(componentRef.location.nativeElement);
+
+    componentRef.onDestroy(() => {
+      this.appRef.detachView(componentRef.hostView);
+    });
+  }
+}
+```
+
+## Other topics
+A simple Standalone Component https://www.fabiobiondi.dev/tutorials/angular/angular-standalone-apps--
+
+1. ```standalone: true```  This is a Standalone component or app.
+
+2. **AsyncPipe** is a pipe that can be used to unwrap a value from an **Observable** or **Promise** and display it in the template. It subscribes to the **asynchronous** source and returns the latest value it has emitted. It also marks the component to be checked for changes when **a new value is emitted**, and **unsubscribes automatically when the component is destroyed**.  AsyncPipe is part of the ```@angular/common``` package, which provides common directives and pipes for Angular applications.
+
+3. Angular **HttpClient** is a service that provides a simplified API for HTTP **requests** and **responses** in Angular applications. It supports common HTTP methods, such as **GET, POST, PUT, DELETE**, etc., and allows you to send and receive data in various formats, such as **JSON, text, blob**, etc.  It also provides features such as **interceptors, progress events, typed responses, error handling**, and testing.
+
+4. **HttpClientModule** is a module that configures the **dependency injector for HttpClient** with supporting services, such as **XSRF protection, interceptors, and JSONP**. It is automatically imported by the ```@angular/common/http``` package, which provides the HttpClient service and related classes.
+
+    - To use **HttpClient** in a standalone component, you need to include HttpClientModule in the component’s imports array, because it provides the necessary providers and dependencies for HttpClient. However, you also need to import HttpClient at the beginning of the component’s file, because it is the class that you need to inject in the component’s constructor to create an instance of the service.
+
+```js
+import { Component } from '@angular/core';
+import { AsyncPipe, NgFor } from "@angular/common";
+import { HttpClient, HttpClientModule } from "@angular/common/http";
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  template: `
+    <li *ngFor="let user of users$ | async">{{user.name}}</li>
+  `,
+  imports: [
+    HttpClientModule, // <==
+    NgFor,
+    AsyncPipe
+  ],
+})
+export class AppComponent {
+  constructor(private http: HttpClient) {}
+  users$ = this.http.get<any[]>('https://jsonplaceholder.typicode.com/users');
+}
+```
+If you prefer to import it in ```main.ts``` by using the **provideHttpClient** function as shown below in order to make all the **HttpClient** features globally avaiable.
+```js
+import { bootstrapApplication } from "@angular/platform-browser";
+import { AppComponent } from "./app/app.component";
+import { provideHttpClient } from "@angular/common/http";
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideHttpClient() // <==
+  ]
+})
+.catch(err => console.log(err))
+```
+### Another minor point in the dynamic component loading
+Normally in ```route.js``` 
+```js
+providers: [
+  provideHttpClient(),
+  provideRouter([
+    {path: 'home', loadComponent: () =>
+           import('./app/pages/home.component').then(c => c.HomeComponent)},
+    {path: 'catalog', loadComponent: () =>
+           import('./app/pages/catalog.component').then(c => c.CatalogComponent)},
+    {path: '', redirectTo: 'home', pathMatch: 'full'}
+  ])
+]  
+```
+Add ```default``` keyword in component file
+```js
+export default class HomeComponent { }
+...
+export default class CatalogComponent { }
+```
+Then, the above code can be changed as follows,
+```js
+providers: [
+  provideHttpClient(),
+  provideRouter([
+    {path: 'home', loadComponent: () => import('./app/pages/home.component')},
+    {path: 'catalog', loadComponent: () => import('./app/pages/catalog.component')},
+    {path: '', redirectTo: 'home', pathMatch: 'full'}
+  ])
+]
+```
+## Stardalone Component
+Getting started with standalone components 
+https://angular.io/guide/standalone-components
+
+Standalone components can also be imported into existing **NgModules-based** contexts. This allows existing applications (which are using NgModules today) to incrementally adopt the new, standalone style of component.
+
+You can import a standalone component (or directive, or pipe) just like you would an ```NgModule``` - using ```NgModule.imports```:
+```js
+@NgModule({
+  declarations: [AlbumComponent],
+  exports: [AlbumComponent], 
+  imports: [PhotoGalleryComponent],    // <==
+})
+export class AlbumModule {}
+```
+
+# Appendix
+
+- https://angular.io/guide/migration-component-factory-resolver
+
+- https://garage.sekrab.com/posts/creating-a-component-dynamically-and-programmatically-in-angular
+
+- **Fabio Bionda** tutorial site (nice presentation)
+   - https://www.fabiobiondi.dev/tutorials
+
+- ***Create and Compile Web Components in Angular Projects***
+Another artical to use webpack bilder to separate the web components to a separate project.
+  - ***Note*** Our previous webpack build was not successful
+  - https://trailheadtechnology.com/create-and-compile-web-components-in-angular-projects/
+
+- ***Loading Components Dynamically in an Angular App*** :
+Create a set of component and service files that will be used to load components dynamically.
+  - https://developer.okta.com/blog/2021/12/08/angular-dynamic-components
+  - https://github.com/oktadev/okta-angular-dynamic-components-example.git
+
