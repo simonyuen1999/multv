@@ -1,10 +1,5 @@
 import {
     Component,
-    ComponentFactoryResolver,
-    Injector,
-    ApplicationRef,
-    ElementRef,
-    ViewChild,
     ViewContainerRef
 } from '@angular/core';
 
@@ -22,14 +17,7 @@ export class DashComponent {
     
   bAlternative = true;
 
-  @ViewChild('container', { read: ViewContainerRef }) container!: ViewContainerRef;
-
-  constructor(
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private injector: Injector,
-    private appRef: ApplicationRef,
-    private el: ElementRef
-  ) {}
+  constructor( private viewContainerRef: ViewContainerRef ) { }
 
   loadComponent() {
     if (this.bAlternative) {
@@ -42,21 +30,10 @@ export class DashComponent {
 
   loadComponent$(component: any) {
 
-    // create a component factory for the HelloComponent
-    const componentFactory = this.componentFactoryResolver.resolveComponentFactory( component );
+    this.viewContainerRef.detach();
 
-    // create a component instance using the factory and the injector
-    const componentRef = componentFactory.create(this.injector);
+    const componentRef = this.viewContainerRef.createComponent( component );
 
-    // Alternative way: attach the component to the view container
-    // this.container.insert(componentRef.hostView);
-
-    this.appRef.attachView(componentRef.hostView);
-    this.el.nativeElement.appendChild(componentRef.location.nativeElement);
-
-    componentRef.onDestroy(() => {
-      console.log('componentRef.onDestroy()');
-      this.appRef.detachView(componentRef.hostView);
-    });
+    this.viewContainerRef.insert(componentRef.hostView);
   }
 }
