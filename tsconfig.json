@@ -2,6 +2,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "types": ["webpack-env"],
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -29,5 +30,18 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
+  },
+  /* cannot surpress warning */
+  "rules": {
+    "no-dynamic-import": {
+      "severity": "off",
+      "options": ["src/app/modules/lazy/dash.component.ts"] 
+    }
   }
+  /* ignore this file, it does not resolve the error.
+     TS2339: Property 'context' does not exist on type 'NodeRequire'
+  "include": [
+    "typings.d.ts"
+  ]
+  */
 }
