@@ -43,7 +43,7 @@ export class DashComponent {
   loadComponent() {
     const sel = document.getElementById('sSelect') as HTMLSelectElement;
     this.sSelect = sel.options[sel.selectedIndex].value;
-    console.log('--------------------------'+ this.sSelect +'--------------------------------');
+    console.log('-------------------------- '+ this.sSelect +' --------------------------------');
 
     if (this.bAlternative) {
       this.loadComponent$(TchComponent);
