@@ -5,7 +5,8 @@ const path = require('path');
 module.exports = {
   entry: {
     main: './src/main.ts',
-    lazy: './src/app/modules/lazy/lazy.module.ts'
+    lazy: './src/app/modules/lazy/lazy.module.ts',
+  //dash: './src/app/modules/lazy/dash.module.ts'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
